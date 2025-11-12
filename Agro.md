@@ -1,16 +1,16 @@
-Plano de Solução Estratégica: Ecossistema AgroS_IA Sergipe
+Plano de Solução Estratégica: Ecossistema PlantAI Sergipe
 
 A Sinergia entre Deep Learning, IoT e Agricultura de Precisão para o Ecossistema Sergipano
 
 1. Visão Geral (O "Pitch")
 
-Estamos diante de uma oportunidade de transformar a agricultura em Sergipe, criando um ecossistema de AgriTech hiper-localizado. A solução "AgroS_IA" não é apenas um aplicativo; é uma plataforma de inteligência agrícola que une agricultores, técnicos e a Embrapa em um data-flywheel contínuo. Utilizaremos uma arquitetura de IA (Redes Neurais Convolucionais) treinada especificamente com a flora, pragas e ervas daninhas endêmicas do estado (ex: culturas de milho, citros, mandioca), garantindo uma precisão que soluções genéricas não podem oferecer.
+Estamos diante de uma oportunidade de transformar a agricultura em Sergipe, criando um ecossistema de AgriTech hiper-localizado. A solução "PlantAI" não é apenas um aplicativo; é uma plataforma de inteligência agrícola que une agricultores, técnicos e a Embrapa em um data-flywheel contínuo. Utilizaremos uma arquitetura de IA (Redes Neurais Convolucionais) treinada especificamente com a flora, pragas e ervas daninhas endêmicas do estado (ex: culturas de milho, citros, mandioca), garantindo uma precisão que soluções genéricas não podem oferecer.
 
 2. A Arquitetura da Plataforma (Web e Móvel)
 
 A solução é unificada, mas segmentada por perfil para maximizar a adoção e a utilidade.
 
-Perfil 1: AgroS_IA Cuidado (O Agricultor)
+Perfil 1: PlantAI Cuidado (O Agricultor)
 
 Foco: Acessibilidade e Ação Imediata.
 
@@ -30,7 +30,7 @@ Diário da Lavoura (Áudio): Permite ao agricultor gravar notas de voz sobre sua
 
 (Isso é uma forma de softpower para os donos do produto e também canal de comunicação, divulgação e etc)
 
-Perfil 2: AgroS_IA Pro (Técnico / Embrapa)
+Perfil 2: PlantAI Pro (Técnico / Embrapa)
 
 Foco: Análise de Dados e Gestão.
 
@@ -57,7 +57,7 @@ API-Feed: Acesso direto aos dados para integração com sistemas legados da Embr
 
 3. O Coração da Solução: Nosso Ativo de IA Proprietário
 
-O núcleo do AgroS_IA não é apenas um modelo de IA, mas um pipeline de inteligência auto-aprimorável. Nós não estamos apenas usando IA; estamos criando um ativo de dados hiper-localizado e proprietário.O  núcleo da plataforma é um motor de Deep Learning (CNNs, especificamente arquiteturas como EfficientNet ou YOLOv5 para detecção de objetos).
+O núcleo do PlantAI não é apenas um modelo de IA, mas um pipeline de inteligência auto-aprimorável. Nós não estamos apenas usando IA; estamos criando um ativo de dados hiper-localizado e proprietário.O  núcleo da plataforma é um motor de Deep Learning (CNNs, especificamente arquiteturas como EfficientNet ou YOLOv5 para detecção de objetos).
 
 
 3.1. Arquitetura de Inferência (O "Cérebro")
@@ -96,7 +96,7 @@ Aconselhar (Recomendação IA): "Ação imediata: Controle biológico (ex: Trich
 
 Apoiar (Conexão Humana): "Conectar com especialista da Embrapa para plano de manejo integrado? [SIM/NÃO]"
 
-4. O Hardware: AgroS_IA "Scan-Rover" (Edge-AI-Ready)
+4. O Hardware: PlantAI "Scan-Rover" (Edge-AI-Ready)
 
 O "Scan-Rover" é a nossa solução para Digital Twin (Gêmeo Digital) da lavoura. É um dispositivo de Edge AI que leva o poder da nossa nuvem para a mão do operador, com zero dependência de internet no campo.
 
@@ -134,13 +134,13 @@ Oferta: Alerta-Clima (APIs públicas) e Notícias. Limite de 2 scans de IA/mês.
 
 Valor para Nós: Criação de base de usuários (massa crítica), lead generation para os níveis pagos.
 
-Nível 2: SaaS B2C - "AgroS_IA Cuidado" (Volume)
+Nível 2: SaaS B2C - "PlantAI Cuidado" (Volume)
 
 Oferta: (Ex: R$ 19,90/mês). Scans de IA ilimitados, funcionalidade de áudio (TTS) completa, Diário de Lavoura por Áudio.
 
 Valor para Nós: Receita recorrente (MRR) de alto volume, alto ARPU (Average Revenue Per User), e principal fonte de dados de campo.
 
-Nível 3: SaaS B2B - "AgroS_IA Pro" (Valor Agregado)
+Nível 3: SaaS B2B - "PlantAI Pro" (Valor Agregado)
 
 Oferta: (Ex: R$ 99,00/mês/técnico). Dashboard analítico, Data-Analytics (mapas de calor, relatórios), Gestão de Casos (SOS) e acesso à API.
 

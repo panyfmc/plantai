@@ -1,9 +1,9 @@
-Whitepaper: Arquitetura Híbrida (Edge-Cloud) do Ecossistema AgroS_IA: Integração de Dispositivo de Borda e Pipeline de IA
+Whitepaper: Arquitetura Híbrida (Edge-Cloud) do Ecossistema PlantAI: Integração de Dispositivo de Borda e Pipeline de IA
 
 Autores: (Eu, ver, paula, gus)
 
 Resumo (Abstract):
-Este documento propõe uma arquitetura de sistema híbrido (Edge-Cloud) para a detecção e diagnóstico fitossanitário em tempo real, especificamente adaptada para o ecossistema agrícola de Sergipe. A solução aborda dois desafios críticos: (1) a falta de conectividade de internet confiável no campo e (2) a necessidade de modelos de IA hiper-localizados com altíssima precisão. O sistema é composto por dois subsistemas principais: (1) o AgroS_IA "Scan-Rover", um dispositivo de hardware IoT com capacidade de inferência on-device (Edge AI) para diagnósticos offline instantâneos, e (2) o AgroS_IA "Cérebro IA", uma plataforma de nuvem para treinamento de modelos, análise de dados em larga escala e validação humana. Descrevemos o fluxo de dados e o pipeline de Model-in-the-Loop (MITL) que garante o auto-aprimoramento contínuo do modelo, criando um ativo de dados proprietário e soberano.
+Este documento propõe uma arquitetura de sistema híbrido (Edge-Cloud) para a detecção e diagnóstico fitossanitário em tempo real, especificamente adaptada para o ecossistema agrícola de Sergipe. A solução aborda dois desafios críticos: (1) a falta de conectividade de internet confiável no campo e (2) a necessidade de modelos de IA hiper-localizados com altíssima precisão. O sistema é composto por dois subsistemas principais: (1) o PlantAI "Scan-Rover", um dispositivo de hardware IoT com capacidade de inferência on-device (Edge AI) para diagnósticos offline instantâneos, e (2) o PlantAI "Cérebro IA", uma plataforma de nuvem para treinamento de modelos, análise de dados em larga escala e validação humana. Descrevemos o fluxo de dados e o pipeline de Model-in-the-Loop (MITL) que garante o auto-aprimoramento contínuo do modelo, criando um ativo de dados proprietário e soberano.
 
 1. Introdução
 
@@ -101,7 +101,7 @@ Se SIM: O dado é marcado como "Auto-Validado" e arquivado.
 
 Se NÃO: (ex: o edge disse "Joana" e a nuvem disse "Pulgão", ou a confiança da nuvem foi baixa): O dado é marcado como "Requer Validação Humana".
 
-Validação Humana (Model-in-the-Loop): O dado "Requer Validação Humana" aparece no dashboard do AgroS_IA Pro (Técnico/Embrapa). Um especialista (ex: um agrônomo da Embrapa) analisa a imagem e dá o rótulo correto.
+Validação Humana (Model-in-the-Loop): O dado "Requer Validação Humana" aparece no dashboard do PlantAI Pro (Técnico/Embrapa). Um especialista (ex: um agrônomo da Embrapa) analisa a imagem e dá o rótulo correto.
 
 Promoção para "Golden Dataset": Este dado, agora 100% verificado por um humano, é movido para o nosso Golden Dataset de treinamento.
 

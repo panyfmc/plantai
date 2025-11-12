@@ -1,6 +1,6 @@
 Plano de Ação: Transição de Infraestrutura de IA (Cloud-to-Proprietary)
 
-Este documento detalha a estratégia de 3 fases para a infraestrutura de inferência do AgroS_IA, desde o lançamento rápido até a soberania tecnológica e maximização de margem.
+Este documento detalha a estratégia de 3 fases para a infraestrutura de inferência do PlantAI, desde o lançamento rápido até a soberania tecnológica e maximização de margem.
 
 Fase 1: Cloud-Native (Meses 0-12) - Foco em Velocidade e Aquisição de Dados
 
@@ -62,7 +62,7 @@ Expansão de Hardware: Adquirimos mais racks de GPU, antecipando o crescimento.
 
 Soberania Total: 99% das inferências rodam em nosso hardware. O router da Fase 2 agora só usa a nuvem em caso de falha catastrófica do nosso datacenter.
 
-Novo Produto (O Game-Changer): Lançamos o "AgroS_IA API". Agora vendemos nosso poder de inferência B2B para seguradoras, outras agritechs, cooperativas e até mesmo para a Embrapa, a um preço que nossos concorrentes (dependentes da nuvem pública) não podem competir.
+Novo Produto (O Game-Changer): Lançamos o "PlantAI API". Agora vendemos nosso poder de inferência B2B para seguradoras, outras agritechs, cooperativas e até mesmo para a Embrapa, a um preço que nossos concorrentes (dependentes da nuvem pública) não podem competir.
 
 Análise de Custo (Custo Marginal Zero):
 
@@ -90,6 +90,6 @@ Margem Bruta Massiva: Como visto na Fase 3, nosso custo variável por usuário d
 
 Arma Competitiva: O custo marginal zero nos permite ser extremamente agressivos no preço. Podemos baixar o preço do nosso SaaS B2C para R$ 9,90/mês, capturar 80% do mercado e ainda assim ter mais lucro por usuário do que um concorrente preso na Fase 1 (Cloud) vendendo a R$ 29,90.
 
-A Nova Fonte de Receita: O lançamento da "AgroS_IA API" (Fase 3) nos transforma de consumidor de IA para fornecedor de IA. Nos tornamos a infraestrutura de visão computacional agrícola do Nordeste, criando um flywheel de receita B2B que escala de forma independente do nosso app B2C.
+A Nova Fonte de Receita: O lançamento da "PlantAI API" (Fase 3) nos transforma de consumidor de IA para fornecedor de IA. Nos tornamos a infraestrutura de visão computacional agrícola do Nordeste, criando um flywheel de receita B2B que escala de forma independente do nosso app B2C.
 
 Conclusão: A nuvem pública (Fase 1) é nosso foguete de lançamento. Nosso hardware proprietário (Fase 3) é o nosso motor de hiperespaço – ele nos permite ir mais rápido, com custo menor e nos torna donos da rota.
