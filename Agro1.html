@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroS_IA - Protótipo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Configuração do Inter Font -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+<body class="h-full">
+    <div id="app" class="h-full">
+        <!-- O conteúdo será renderizado pelo JavaScript -->
+    </div>
+
+    <script type="module">
+        // Estado centralizado da aplicação
+        const state = {
+            currentPage: 'login', // 'login', 'dashboard_farmer', 'dashboard_tech', 'scan', 'climate', 'news'
+            profile: null, // 'farmer', 'tech'
+            isAudioOn: false,
+            lastSpokenText: '',
+        };
+
+        // --- MÓDULO DE ÁUDIO (TTS) ---
+        // Fila para garantir que as falas não se sobreponham
+        let speechQueue = [];
+        let isSpeaking = false;
+
+        /**
+         * Adiciona texto à fila de fala.
+         * @param {string} text - O texto a ser falado.
+         * @param {boolean} [force=false] - Se deve interromper a fala atual e falar imediatamente.
+         */
+        function speakText(text, force = false) {
+            if (!state.isAudioOn || !text) return;
+            
+            // Evita repetição da mesma fala
+            if (text === state.lastSpokenText && !force) return;
+            state.lastSpokenText = text;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.0;
+
+            if (force) {
+                speechQueue = []; // Limpa a fila
+                window.speechSynthesis.cancel(); // Interrompe a fala atual
+            }
+            
+            speechQueue.push(utterance);
+            processSpeechQueue();
+        }
+
+        function processSpeechQueue() {
+            if (isSpeaking || speechQueue.length === 0) {
+                return;
+            }
+
+            isSpeaking = true;
+            const utterance = speechQueue.shift();
+            
+            utterance.onend = () => {
+                isSpeaking = false;
+                state.lastSpokenText = ''; // Limpa o último texto falado após a conclusão
+                setTimeout(processSpeechQueue, 100); // Pequeno delay
+            };
+            
+            utterance.onerror = (e) => {
+                console.error("Erro na síntese de fala:", e);
+                isSpeaking = false;
+                processSpeechQueue(); // Tenta o próximo
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        /**
+         * Ativa ou desativa o áudio e fornece feedback.
+         */
+        function toggleAudio() {
+            state.isAudioOn = !state.isAudioOn;
+            console.log("Áudio:", state.isAudioOn ? "Ligado" : "Desligado");
+            
+            const icon = document.getElementById('audio-icon');
+            if (icon) {
+                icon.className = state.isAudioOn ? 'fas fa-volume-up text-xl' : 'fas fa-volume-mute text-xl';
+            }
+            
+            if (state.isAudioOn) {
+                // Força a fala de "Áudio ativado"
+                speakText('Áudio ativado. Toque nos ícones para ouvir.', true);
+            } else {
+                // Interrompe qualquer fala
+                window.speechSynthesis.cancel();
+                speechQueue = [];
+                isSpeaking = false;
+            }
+        }
+
+        // --- NAVEGAÇÃO E RENDERIZAÇÃO ---
+        
+        /**
+         * Navega para uma nova página e renderiza o conteúdo.
+         * @param {string} pageName - O nome da página para renderizar.
+         */
+        function navigateTo(pageName) {
+            state.currentPage = pageName;
+            renderApp();
+        }
+
+        /**
+         * Renderiza o conteúdo da página atual no #app
+         */
+        function renderApp() {
+            const appContainer = document.getElementById('app');
+            let content = '';
+
+            // Adiciona o cabeçalho se não for a página de login
+            if (state.currentPage !== 'login') {
+                content += renderHeader();
+            }
+
+            // Renderiza a página específica
+            switch (state.currentPage) {
+                case 'login':
+                    content += renderLogin();
+                    break;
+                case 'dashboard_farmer':
+                    content += renderDashboardFarmer();
+                    speakText('Painel do Agricultor. Escolha uma opção: Escanear, Clima, Notícias ou Ajuda.');
+                    break;
+                case 'dashboard_tech':
+                    content += renderDashboardTech();
+                    break;
+                case 'scan':
+                    content += renderScanPage();
+                    speakText('Escanear. Toque no botão para abrir a câmera e identificar a praga.');
+                    break;
+                case 'climate':
+                    content += renderClimatePage();
+                    break;
+                case 'news':
+                    content += renderNewsPage();
+                    break;
+            }
+            
+            appContainer.innerHTML = content;
+            addEventListeners(); // Adiciona os listeners aos novos elementos
+        }
+
+        /**
+         * Renderiza o cabeçalho (Header)
+         */
+        function renderHeader() {
+            let backButton = '';
+            let dashboardPage = state.profile === 'farmer' ? 'dashboard_farmer' : 'dashboard_tech';
+
+            if (state.currentPage !== dashboardPage) {
+                backButton = `
+                    <button data-page="${dashboardPage}" data-speak="Voltar ao painel principal" class="nav-button p-2 rounded-md hover:bg-green-700">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                `;
+            }
+
+            let audioButton = '';
+            if (state.profile === 'farmer') {
+                audioButton = `
+                    <button id="toggle-audio-btn" class="p-2 rounded-md hover:bg-green-700">
+                        <i id="audio-icon" class="${state.isAudioOn ? 'fas fa-volume-up' : 'fas fa-volume-mute'} text-xl"></i>
+                    </button>
+                `;
+            }
+
+            return `
+                <header class="bg-green-800 text-white p-4 shadow-lg flex justify-between items-center">
+                    <div>${backButton}</div>
+                    <h1 class="text-xl font-bold">AgroS_IA</h1>
+                    <div>
+                        ${audioButton}
+                        <button data-page="login" data-speak="Sair" class="nav-button p-2 ml-2 rounded-md hover:bg-green-700">
+                            <i class="fas fa-sign-out-alt text-xl"></i>
+                        </button>
+                    </div>
+                </header>
+                <main id="page-content" class="p-4 md:p-6 lg:p-8"></main>
+            `;
+        }
+
+        /**
+         * Renderiza a tela de Login (Seleção de Perfil)
+         */
+        function renderLogin() {
+            return `
+                <div class="flex flex-col items-center justify-center h-full bg-green-50">
+                    <div class="text-center mb-12">
+                        <i class="fas fa-leaf text-6xl text-green-700 mb-4"></i>
+                        <h1 class="text-4xl font-bold text-green-900">AgroS_IA</h1>
+                        <p class="text-lg text-gray-600">Agricultura de Precisão para Sergipe</p>
+                    </div>
+                    
+                    <div class="w-full max-w-sm p-4 space-y-6">
+                        <h2 class="text-xl font-semibold text-center text-gray-700">Selecione o seu perfil:</h2>
+                        
+                        <button id="select-farmer" class="w-full bg-green-700 text-white p-6 rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 ease-in-out flex items-center justify-center space-x-4">
+                            <i class="fas fa-user text-3xl"></i>
+                            <span class="text-2xl font-semibold">Sou Agricultor</span>
+                        </button>
+                        
+                        <button id="select-tech" class="w-full bg-gray-600 text-white p-6 rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-200 ease-in-out flex items-center justify-center space-x-4">
+                            <i class="fas fa-user-tie text-3xl"></i>
+                            <span class="text-2xl font-semibold">Sou Técnico</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * Renderiza o Dashboard do Agricultor
+         */
+        function renderDashboardFarmer() {
+            return `
+                <div class="grid grid-cols-2 gap-4 md:gap-6 p-4">
+                    <button data-page="scan" data-speak="Escanear Planta" class="nav-button flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:bg-green-50 aspect-square transition-all">
+                        <i class="fas fa-camera text-6xl text-green-700 mb-4"></i>
+                        <span class="text-2xl font-semibold text-center text-gray-800">Escanear</span>
+                    </button>
+                    
+                    <button data-page="climate" data-speak="Ver Clima" class="nav-button flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:bg-blue-50 aspect-square transition-all">
+                        <i class="fas fa-cloud-sun text-6xl text-blue-500 mb-4"></i>
+                        <span class="text-2xl font-semibold text-center text-gray-800">Clima</span>
+                    </button>
+                    
+                    <button data-page="news" data-speak="Notícias" class="nav-button flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:bg-yellow-50 aspect-square transition-all">
+                        <i class="fas fa-newspaper text-6xl text-yellow-500 mb-4"></i>
+                        <span class="text-2xl font-semibold text-center text-gray-800">Notícias</span>
+                    </button>
+                    
+                    <button data-speak="Ligar para Embrapa" class="nav-button flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:bg-red-50 aspect-square transition-all">
+                        <i class="fas fa-headset text-6xl text-red-500 mb-4"></i>
+                        <span class="text-2xl font-semibold text-center text-gray-800">Ajuda</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        /**
+         * Renderiza o Dashboard do Técnico
+         */
+        function renderDashboardTech() {
+            return `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Card de Scan -->
+                        <button data-page="scan" class="nav-button bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all text-left">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-camera text-4xl text-green-700"></i>
+                                <div>
+                                    <h2 class="text-2xl font-semibold text-gray-800">Scan Avançado</h2>
+                                    <p class="text-gray-600">Identificar pragas e doenças</p>
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <!-- Card de Clima -->
+                        <button data-page="climate" class="nav-button bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all text-left">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-cloud-sun-rain text-4xl text-blue-500"></i>
+                                <div>
+                                    <h2 class="text-2xl font-semibold text-gray-800">Clima e Alertas</h2>
+                                    <p class="text-gray-600">Previsão e alertas regionais</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <!-- Card de Notícias/Feed -->
+                        <button data-page="news" class="nav-button bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all text-left">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-newspaper text-4xl text-yellow-500"></i>
+                                <div>
+                                    <h2 class="text-2xl font-semibold text-gray-800">Feed de Culturas</h2>
+                                    <p class="text-gray-600">Artigos e atualizações</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Card de Analytics -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Análises da Fazenda (Mock)</h2>
+                        <p class="text-gray-600">Gráfico de incidência de pragas nos últimos 30 dias.</p>
+                        <!-- Mock de Gráfico -->
+                        <div class="mt-4 bg-gray-100 h-48 rounded-md flex items-center justify-center">
+                            <i class="fas fa-chart-line text-6xl text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renderiza a página de Scan
+         */
+        function renderScanPage() {
+            return `
+                <div class="flex flex-col items-center">
+                    <input type="file" id="image-upload" accept="image/*" class="hidden">
+                    
+                    <button id="scan-button" class="bg-green-700 text-white p-8 rounded-full shadow-lg hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 ease-in-out flex flex-col items-center space-y-2"
+                        data-speak="Iniciar escaneamento. Toque para abrir a câmera.">
+                        <i class="fas fa-camera text-5xl"></i>
+                        <span class="text-xl font-semibold">Escanear Planta</span>
+                    </button>
+                    
+                    <div id="scan-result" class="w-full max-w-lg mt-8">
+                        <!-- O resultado será inserido aqui -->
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Manipula o upload da imagem e simula a análise de IA
+         */
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                const resultContainer = document.getElementById('scan-result');
+                
+                // 1. Mostrar loading
+                let loadingHtml = `
+                    <div class="text-center p-4 bg-white rounded-lg shadow-md">
+                        <i class="fas fa-spinner fa-spin text-4xl text-green-700"></i>
+                        <p class="text-lg text-gray-700 mt-2" data-speak-auto="Analisando imagem com Inteligência Artificial...">Analisando imagem com IA...</p>
+                    </div>
+                `;
+                resultContainer.innerHTML = loadingHtml;
+                if (state.profile === 'farmer') speakText("Analisando imagem com Inteligência Artificial...");
+
+                // 2. Simular delay da IA
+                setTimeout(() => {
+                    // 3. Mostrar resultado (Mock)
+                    const diagnosis = "Mosca Branca (Bemisia tabaci)";
+                    const recommendation = "Alto risco. Iniciar controle biológico com *Encarsia formosa*. Evitar defensivos à base de neonicotinóides para proteger polinizadores. Clique para ver produtos recomendados.";
+                    
+                    let resultHtml = `
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <img src="${imageUrl}" alt="Planta escaneada" class="w-full h-64 object-cover">
+                            <div class="p-6">
+                                <h3 class="text-sm font-semibold text-red-600 uppercase" data-speak="Diagnóstico">Diagnóstico</h3>
+                                <p class="text-3xl font-bold text-gray-900 mb-4" data-speak="Praga: ${diagnosis}">${diagnosis}</p>
+                                
+                                <h3 class="text-sm font-semibold text-green-600 uppercase" data-speak="Recomendação">Recomendação</h3>
+                                <p class="text-lg text-gray-700" data-speak="${recommendation}">${recommendation}</p>
+
+                                <button class="w-full mt-6 bg-green-700 text-white p-3 rounded-lg shadow hover:bg-green-800"
+                                    data-speak="Ver produtos recomendados">
+                                    Ver Produtos
+                                </button>
+                                <button class="w-full mt-3 bg-red-600 text-white p-3 rounded-lg shadow hover:bg-red-700"
+                                    data-speak="Chamar um técnico da Embrapa agora">
+                                    <i class="fas fa-headset mr-2"></i> Chamar Técnico da Embrapa
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    resultContainer.innerHTML = resultHtml;
+                    
+                    // Lê o resultado automaticamente para o agricultor
+                    if (state.profile === 'farmer') {
+                        speakText(`Diagnóstico: ${diagnosis}. Recomendação: ${recommendation}`, true);
+                    }
+                }, 2500); // Simula 2.5 segundos de análise
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /**
+         * Renderiza a página de Clima (Mock)
+         */
+        function renderClimatePage() {
+            const climateHtml = `
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4" data-speak="Previsão do Tempo em Sergipe">Previsão do Tempo</h2>
+                    
+                    <div class="border-b pb-4 mb-4">
+                        <h3 class="text-xl font-semibold text-blue-600" data-speak="Hoje, em Aracaju">Hoje: Aracaju, SE</h3>
+                        <div class="flex items-center space-x-4 mt-2">
+                            <i class="fas fa-cloud-sun text-5xl text-yellow-500"></i>
+                            <div>
+                                <p class="text-4xl font-bold text-gray-900" data-speak="29 graus">29°C</p>
+                                <p class="text-lg text-gray-600" data-speak="Parcialmente nublado">Parcialmente Nublado</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-semibold text-gray-700" data-speak="Próximos dias">Próximos 3 dias:</h3>
+                        <p class="text-gray-600" data-speak="Amanhã: 30 graus, sol.">Amanhã: 30°C, Sol.</p>
+                        <p class="text-gray-600" data-speak="Quarta: 28 graus, possibilidade de chuva.">Quarta: 28°C, Possibilidade de chuva (40%).</p>
+                        <p class="text-gray-600" data-speak="Quinta: 29 graus, sol entre nuvens.">Quinta: 29°C, Sol entre nuvens.</p>
+                        <p class="text-sm text-gray-500 mt-4" data-speak="Fonte: API pública INMET">Fonte: INMET (Mock)</p>
+                    </div>
+                </div>
+            `;
+            // Lê o conteúdo principal da página
+            if (state.profile === 'farmer') {
+                speakText("Previsão do Tempo. Hoje em Aracaju: 29 graus, parcialmente nublado. Amanhã: 30 graus, sol.");
+            }
+            return climateHtml;
+        }
+
+        /**
+         * Renderiza a página de Notícias (Mock)
+         */
+        function renderNewsPage() {
+            const newsHtml = `
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4" data-speak="Notícias da Lavoura">Notícias da Lavoura</h2>
+                    <div class="space-y-4">
+                        <div class="border-b pb-4">
+                            <h3 class="text-xl font-semibold text-green-700" data-speak="Nova técnica de irrigação para milho em Sergipe.">Nova técnica de irrigação para milho em Sergipe</h3>
+                            <p class="text-gray-600" data-speak="Especialistas da Embrapa demonstram método que economiza 30% de água.">Especialistas da Embrapa demonstram método que economiza 30% de água.</p>
+                        </div>
+                        <div class="border-b pb-4">
+                            <h3 class="text-xl font-semibold text-red-600" data-speak="Alerta de praga para citros na região de Itabaiana.">Alerta de praga para citros na região de Itabaiana</h3>
+                            <p class="text-gray-600" data-speak="Aumento de casos de 'Pinta Preta' requer atenção redobrada dos produtores.">Aumento de casos de 'Pinta Preta' requer atenção redobrada dos produtores.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-yellow-600" data-speak="Crédito rural: Novas linhas disponíveis para pequenos produtores.">Crédito rural: Novas linhas disponíveis para pequenos produtores</h3>
+                            <p class="text-gray-600" data-speak="Banco do Nordeste anuncia condições facilitadas para a safra 2025.">Banco do Nordeste anuncia condições facilitadas para a safra 2025.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            if (state.profile === 'farmer') {
+                speakText("Notícias. Primeira: Nova técnica de irrigação para milho em Sergipe. Segunda: Alerta de praga para citros na região de Itabaiana.");
+            }
+            return newsHtml;
+        }
+
+
+        // --- ADIÇÃO DE EVENT LISTENERS ---
+        
+        /**
+         * Adiciona todos os event listeners da página.
+         * Deve ser chamada após cada renderApp().
+         */
+        function addEventListeners() {
+            // Seleção de Perfil
+            const selectFarmer = document.getElementById('select-farmer');
+            if (selectFarmer) {
+                selectFarmer.addEventListener('click', () => {
+                    state.profile = 'farmer';
+                    state.isAudioOn = true; // Ativa o áudio automaticamente para o agricultor
+                    navigateTo('dashboard_farmer');
+                });
+            }
+
+            const selectTech = document.getElementById('select-tech');
+            if (selectTech) {
+                selectTech.addEventListener('click', () => {
+                    state.profile = 'tech';
+                    state.isAudioOn = false; // Desativa por padrão para o técnico
+                    navigateTo('dashboard_tech');
+                });
+            }
+
+            // Botões de navegação (comum)
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const page = e.currentTarget.dataset.page;
+                    if (page) {
+                        navigateTo(page);
+                    }
+                    // Se o áudio estiver ligado, fala o texto do botão
+                    const speakTextContent = e.currentTarget.dataset.speak;
+                    if (state.isAudioOn && speakTextContent) {
+                        speakText(speakTextContent, true); // Força a fala
+                    }
+                });
+
+                // Adiciona listener de mouseover para falar (apenas para agricultor)
+                if (state.profile === 'farmer') {
+                    button.addEventListener('mouseover', (e) => {
+                        const speakTextContent = e.currentTarget.dataset.speak;
+                        if (state.isAudioOn && speakTextContent) {
+                            speakText(speakTextContent, false); // Não força
+                        }
+                    });
+                }
+            });
+
+            // Botão de toggle de áudio
+            const audioBtn = document.getElementById('toggle-audio-btn');
+            if (audioBtn) {
+                audioBtn.addEventListener('click', toggleAudio);
+            }
+
+            // Botão de Scan (trigger do upload)
+            const scanButton = document.getElementById('scan-button');
+            const imageUpload = document.getElementById('image-upload');
+            if (scanButton && imageUpload) {
+                scanButton.addEventListener('click', () => {
+                    imageUpload.click(); // Abre o seletor de arquivos
+                });
+                imageUpload.addEventListener('change', handleImageUpload);
+            }
+
+            // Listeners para ler o conteúdo da página de resultado (para agricultor)
+            if (state.profile === 'farmer' && state.currentPage === 'scan') {
+                const resultContainer = document.getElementById('scan-result');
+                if (resultContainer) {
+                    resultContainer.addEventListener('click', (e) => {
+                        const speakContent = e.target.dataset.speak;
+                        if (speakContent) {
+                            speakText(speakContent, true);
+                        }
+                    });
+                }
+            }
+        }
+
+        // --- INICIALIZAÇÃO ---
+        renderApp(); // Renderiza a página inicial (Login)
+
+    </script>
+</body>
+</html>
